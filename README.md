@@ -26,8 +26,14 @@ En deux parties, en utilisant Python et Cassandra
 - faire un insert en filtrant les numéros de téléphone qui sont dans la zone à risque + l'heure d'insert
 
 ## A résoudre:
-- est-ce que l'INSERT se fait par rapport à l'ordre de la table insérée? Si non, problème
 - dans la base initiale: combien de positions par personne? Combien de personnes?
+- combien y a t il de personnes? Pas 120 millions puisque les numéros de téléphone n'ont que 6 chiffres
+- réplication entre les différents noeuds: quels facteurs choisir?
+- pour l'insert, il faut passer par un csv (externe). Utilisation d'une base graph plutôt?
+- utilisation d'un geoHash?
+
+## Résolu:
+- est-ce que l'INSERT se fait par rapport à l'ordre de la table insérée? Oui
 
 ## Améliorations possibles:
 - filtrer directement la latitude et la longitude avec:
