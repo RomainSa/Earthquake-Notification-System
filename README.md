@@ -33,3 +33,7 @@ En deux parties, en utilisant Python et Cassandra
 - filtrer directement la latitude et la longitude avec:
 WHERE Lmin < latitude AND Lmax < latitude AND lmin < longitude AND lmax < longitude 
 - voir si des clauses de ce WHERE sont inutiles (dépend de la géographie du pays)
+
+## Liens utiles (calcul de distances sur une sphère et prise en charge en SQL)
+http://janmatuschek.de/LatitudeLongitudeBoundingCoordinates
+http://www.movable-type.co.uk/scripts/latlong-db.html
