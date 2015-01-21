@@ -30,6 +30,7 @@ En deux parties, en utilisant Python et Cassandra
 - combien y a t il de personnes? Pas 120 millions puisque les numéros de téléphone n'ont que 6 chiffres
 - réplication entre les différents noeuds: quels facteurs choisir?
 - pour l'insert, il faut passer par un csv (externe). Utilisation d'une base graph plutôt?
+- utilisation d'un geoHash?
 
 ## Résolu:
 - est-ce que l'INSERT se fait par rapport à l'ordre de la table insérée? Oui
