@@ -28,6 +28,7 @@ En deux parties, en utilisant Python et Cassandra
 ## A résoudre:
 - est-ce que l'INSERT se fait par rapport à l'ordre de la table insérée? Si non, problème
 - dans la base initiale: combien de positions par personne? Combien de personnes?
+- combien y a t il de personnes? Pas 120 millions puisque les numéros de téléphone n'ont que 6 chiffres
 
 ## Améliorations possibles:
 - filtrer directement la latitude et la longitude avec:
