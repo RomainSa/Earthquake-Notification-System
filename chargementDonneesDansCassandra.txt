@@ -1,0 +1,32 @@
+- [CASSANDRA]charger un fichier en local sur la VM (sur 5 noeuds)
+
+> allumer la VM et regarder l'IP
+> mettre le network en host-only et l'appeler 'vboxnet0' si ce n'est pas déjà fait
+> s'y connecter en SSH: 
+ssh bigdata@192.168.56.101 (bigdatafuret)
+> verifier que le cluster est là:
+ccm status
+> lancer le cluster
+ccm start test
+> copier notre fichier vers la VM: 
+scp -rp /home/roms/Desktop/Projet_noSQL/bigdata-project-2014/data/data_10.csv bigdata@192.168.56.101:/home/bigdata/ccm
+> se connecter en csql sur un noeud:
+ccm node1 cqlsh
+> créer un keyspace
+CREATE KEYSPACE ks WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3 };
+> créer la table qui va recevoir les enregistrement:
+CREATE TABLE ks.table1 (
+	date text, 
+	code_cellule text, 
+	latitude decimal, 
+	longitude decimal, 
+	telephone int,
+	PRIMARY KEY (date, telephone)
+);
+> copier le csv dans une table
+COPY ks.table1 (date, code_cellule, latitude, longitude, telephone)
+FROM '/home/bigdata/ccm/data_10.csv'
+WITH DELIMITER = ';';
+> vérifie que tout est OK en sélectionnant les 10 premiers records:
+SELECT * FROM ks.table1 LIMIT 10;
+
