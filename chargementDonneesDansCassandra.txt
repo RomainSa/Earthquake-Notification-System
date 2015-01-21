@@ -8,25 +8,67 @@ ssh bigdata@192.168.56.101 (bigdatafuret)
 ccm status
 > lancer le cluster
 ccm start test
-> copier notre fichier vers la VM: 
-scp -rp /home/roms/Desktop/Projet_noSQL/bigdata-project-2014/data/data_10.csv bigdata@192.168.56.101:/home/bigdata/ccm
+> copier notre fichier vers la VM (à faire dans un nouveau terminal, en dehors de la VM): 
+scp -rp /home/roms/Desktop/Projet_noSQL/Earthquake-Notification-System/data_10.csv bigdata@192.168.56.101:/home/bigdata/ccm
+
+scp -rp /home/roms/Desktop/Projet_noSQL/Earthquake-Notification-System/data_10_ordered.csv bigdata@192.168.56.101:/home/bigdata/ccm
 > se connecter en csql sur un noeud:
 ccm node1 cqlsh
 > créer un keyspace
 CREATE KEYSPACE ks WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3 };
-> créer la table qui va recevoir les enregistrement:
+> créer la table qui va recevoir les enregistrements:
 CREATE TABLE ks.table1 (
 	date text, 
 	code_cellule text, 
 	latitude decimal, 
 	longitude decimal, 
 	telephone int,
-	PRIMARY KEY (date, telephone)
-);
-> copier le csv dans une table
+	PRIMARY KEY (telephone, date));
+
+CREATE TABLE ks.table2 (
+	latitude decimal, 
+	longitude decimal, 
+	telephone int PRIMARY KEY);
+
+CREATE TABLE ks.table3 (
+	latitude decimal, 
+	longitude decimal, 
+	telephone int,
+	PRIMARY KEY((telephone), latitude, longitude));
+
+> copier les données du csv vers table1
+> dans table1, on a tout ordonné par telephone et date
 COPY ks.table1 (date, code_cellule, latitude, longitude, telephone)
 FROM '/home/bigdata/ccm/data_10.csv'
 WITH DELIMITER = ';';
-> vérifie que tout est OK en sélectionnant les 10 premiers records:
-SELECT * FROM ks.table1 LIMIT 10;
+
+> copier table1 dans un csv (elle est alors triée par telephone et par date)
+COPY ks.table1 (telephone, latitude, longitude) TO 'tempA.csv';
+
+> copier le .csv trié vers table2, qui contient alors le telephone et la dernière latitude et longitude
+COPY ks.table2 (telephone, latitude, longitude) FROM 'tempA.csv';
+
+> copier table2 vers un autre .csv
+COPY ks.table2 (telephone, latitude, longitude) TO 'tempB.csv';
+
+> copie ce .csv vers table3 ou latitude et longitude sont clés et pourront donc être requêtées
+COPY ks.table3 (telephone, latitude, longitude) FROM 'tempB.csv';
+
+> requête pour le tsunami:
+SELECT telephone, latitude, longitude
+FROM ks.table3
+WHERE 
+	latitude > 1 AND
+	latitude < 35
+allow filtering;
+
+comment mettre:
+longitude > 12 AND
+longitude < 500
+
+???
+
+
+
+
 
