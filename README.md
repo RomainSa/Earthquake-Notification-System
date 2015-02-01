@@ -7,7 +7,7 @@ MongoDB + ElasticSearch or Cassandra + Spark
 
 ## Visualization
 Using gmap.js
-![Tsunami Notification System]([http://www.hostingpics.net/viewer.php?id=522998visualization.png)
+![Tsunami Notification System](http://i61.tinypic.com/2gte0xz.png)
 
 ------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------
