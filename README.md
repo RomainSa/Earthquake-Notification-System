@@ -1,5 +1,16 @@
 # Earthquake-Notification-System
-Earthquake Notification System designed using Cassandra database
+## Objective
+Given a 100 GB database of cellular data (phone number, date, latitude, longitude), the location and date of an earthquake, find the fastest way to warn people on Japan's coast (1 person warn = 1 INSERT in a result table).
+
+## Technologies used
+MongoDB + ElasticSearch or Cassandra + Spark
+
+## Visualization
+Using gmap.js
+![Tsunami Notification System]([http://www.hostingpics.net/viewer.php?id=522998visualization.png)
+
+------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------
 
 # PROBLEME
 - créer un cluster avec au moins 5 noeuds dans les 5 villes les plus peuplées du Japon
