@@ -1,4 +1,4 @@
-# MANUEL UTILISATEUR
+# MANUEL UTILISATEUR - CASSANDRA/SPARK
 ## Décomposition du code:
 - lancement du cluster DataStax Enterprise 4.6 sous AWS
 - téléchargement des données depuis S3 
