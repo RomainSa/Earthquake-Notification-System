@@ -32,15 +32,18 @@ Afin d'adapter le format de la Date pour MongoDB on procède par 3 changements:<
 3-ajouter à la position 23une lettre "Z"<br>
 input : 2015-01-18 09:19:16,888;Yok_98;35.462635;139.774854;526198<br>
 En ligne de commande en tape :<br>
-$sed 's/,/./g;s/ /T/g;s/^\(.\{23\}\)/\1Z/'  data_10GB.csv > data_10GB_Date.csv <br>
-(sur mac : sed 's/;/\t/g;s/,/./g;s/ /T/g;s/^\(.\{23\}\)/\1Z/' data_1GB.csv)<br>
+$sed sed 's/,/./g;s/ /T/g;s/^\(.\{23\}\)/\1Z/' data_1MB.csv > data_1MB_Date.csv <br>
 output : 2015-01-18T09:19:16.888Z;Yok_98;35.462635;139.774854;526198<br>
-#### --> Temps (30mn)<br>
+Afficher mes data :<br>
+head -10 data_10GB_Date.csv | grep 1<br>
+#### --> Temps (20mn)<br>
 Après avoir fait les remplacement en convertit le csv en json en ligne de commande:<br>
 Il faut permuter les deux colonnes latitude et longitude pour que Mongo les interprète correctement.<br>
 input : 2015-01-18T09:19:16.888Z;Yok_98;35.462635;139.774854;526198<br>
 $awk -F ';' '{ print "{date:\"" $1 "\",code:\"" $2 "\",position:[" $4 "," $3 "],telephone:" $5 "}" }' data_10GB_Date.csv > data_10GB_Date.json<br>
 output : {"date":"2015-01-18T09:19:16.888Z","code":"Osa_61","position":[135.906451,34.232793],"telephone":829924}<br>
+Afficher mes data :<br>
+head -10 data_10GB_Date.json | grep 1<br>
 #### --> Temps (30mn)
 ### Etape 5 : Lancer mongod <br>
 $mongod --repair<br>
