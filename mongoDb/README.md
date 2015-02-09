@@ -1,5 +1,5 @@
-# IMPLEMENTATION
-En deux parties, en utilisant Python et Cassandra
+# MANUEL UTILISATEUR - MONGODB
+Implémentation en deux parties, en utilisant Python et Cassandra
 
 ## Partie Python
 - créer le tunnel entre Python et Cassandra
