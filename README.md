@@ -11,4 +11,4 @@ La présentation qui a été donnée le 10 Janvier à 9h30 est à la racine du r
 La visualisation est la suivante:
 ![](http://i61.tinypic.com/2gte0xz.png)
 
-Elle a été obtenue à partir du package gmap.js
+Elle a été obtenue à partir du package gmap.js et nécessite de lancer un serveur http pour être affichée (commande `python3 -m http.server` sous Python par exemple)
