@@ -8,13 +8,13 @@
 ## En détails:
 ### lancement du cluster DataStax Enterprise 4.6 sous AWS
 Il est nécessaire de configurer un 'security group' et de créer une 'key pair' avant de lancer le cluster. Les paramètres du cluster doivent être renseignés au lancement (onglet '3. Configure instance' de AWS). Dans notre cas, les paramètres sont les suivants:
-`--clustername clusterTest`<br>
-`--totalnodes 5`<br>
-`--version enterprise`<br>
-`--username *******`<br>
-`--password *******`<br>
-`--cfsreplicationfactor 2`<br>
-`--analyticsnodes 5`<br>
+`--clustername clusterTest
+`--totalnodes 5
+`--version enterprise
+`--username *******
+`--password *******
+`--cfsreplicationfactor 2
+`--analyticsnodes 5
 Lien pour lancer le cluster dans la région 'us-east-1':
 https://console.aws.amazon.com/ec2/home?region=us-east-1#LaunchInstanceWizard:ami=ami-ada2b6c4
 
