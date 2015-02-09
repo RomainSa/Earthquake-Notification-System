@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>GMaps.js &mdash; Marker Clusterer</title>
+  <!-- uncomment to get clusters
+  <script type="text/javascript" src="/gmap-js-files/files/markerclusterer.js"></script>
+  -->
+  <script type="text/javascript" src="/gmap-js-files/files/jquery.min.js"></script>
+  <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
+  <script type="text/javascript" src="/gmap-js-files/gmaps.js"></script>
+  <link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.3.0/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="/gmap-js-files/examples/examples.css" />
+
+  <style>
+    #map {
+      width: 1400px;
+      height: 550px;
+    }
+  </style>
+
+  <script type="text/javascript">
+
+// Javascript part ------------------------------------------------------------------
+
+   var map, circle;
+
+   // draws the impacted zone (radius = 500 km from epicenter)
+    function drawImpactedZone(data) {
+    circle = map.drawCircle({
+        lat: data.latitude,
+        lng: data.longitude,
+        radius: 500*1000,  //500 kilometers
+        strokeColor: '#432070',
+        strokeOpacity: 1,
+        strokeWeight: 1,
+        fillColor: '#432070',
+        fillOpacity: 0.2
+      });
+  }
+
+
+    // loads people impacted (phone number and position)
+    function drawImpactedPeople (data) {
+      var items, markers_data = [];
+      if (data.length > 0) {
+        items = data;
+
+        for (var i = 0; i < items.length; i++) {
+          var item = items[i];
+
+          if (item.latitude != undefined && item.longitude != undefined) {
+            markers_data.push({
+              lat : item.latitude,
+              lng : item.longitude,
+              phone: item.telephone,
+              infoWindow: {
+                content: 
+                  '<p>Telephone: ' + item.telephone + 
+                  '<br><br>Latitude: ' + item.latitude + 
+                  '<br>Longitude: ' + item.longitude + '</p>'
+              }
+            });
+          }
+        }
+        
+      }
+      map.addMarkers(markers_data);
+    }
+
+    function printResults(data) {
+      $('#epicenter').text(JSON.stringify(data));
+      epicenter_lng = data.latitude;
+    }
+
+/*
+    $(document).on('click', '.pan-to-marker', function(e) {
+      e.preventDefault();
+
+      var position, lat, lng, $index;
+
+      $index = $(this).data('marker-index');
+
+      position = map.markers[$index].getPosition();
+  
+      lat = position.lat();
+      lng = position.lng();
+
+      map.setCenter(lat, lng);
+    });
+*/
+
+    // MAP ---------------------------------------------------------------------
+    $(document).ready(function(){
+      map = new GMaps({
+        zoom: 6,
+        div: '#map',
+        lat: 37,
+        lng: 135,
+        /* //uncomment to get cluster
+        markerClusterer: function(map) {
+          return new MarkerClusterer(map);
+        }
+        */ //uncomment to get cluster
+      });
+
+
+      /* // génère des coordonnées aléatoires
+      var lat_span = 37.5 - 37.3;
+      var lng_span = 140.5 - 140.3;
+
+      for(var i = 0; i < 100; i++) {
+        var latitude = Math.random()*(lat_span) + 35.8;
+        var longitude = Math.random()*(lng_span) + 140.3;
+
+        map.addMarker({
+          lat: latitude,
+          lng: longitude,
+          title: 'test'
+        });
+      }
+      */
+
+
+      // MARKERS ---------------------------------------------------------------------
+      map.on('marker_added', function (marker) {
+        var index = map.markers.indexOf(marker);
+        $('#results').append('<li><a href="#" class="pan-to-marker" data-marker-index="' + index + '">' + marker.phone + '</a></li>');
+      });
+
+      // FILES ------------------------------------------------------------------------
+      var epicenter = $.getJSON('/epicenter.json')
+      epicenter.done(drawImpactedZone);
+      epicenter.done(printResults);
+
+      var people = $.getJSON('/people.json')
+      people.done(drawImpactedPeople);
+      //people.done(printResults);
+
+    });
+
+  </script>
+</head>
+<body>
+  <h1>Tsunami Notification System</h1>
+  <div class="span11">
+      <div id="map"></div>
+  </div>
+  <div class="row">
+    <br>
+    <br>
+    Earthquake location: 
+        <pre id="epicenter"></pre>
+  </div>
+</body>
+</html>
