@@ -124,4 +124,4 @@ Le résultat de la visualisation est le suivant:
 
 ### Améliorations possibles
 - ne pas filtrer sur un carré (via la latitude et longitude) mais filtrer sur un rond (coûteux en temps de calcul)
-- mettre ne chache certains RDD
+- mettre en cache certains RDD
