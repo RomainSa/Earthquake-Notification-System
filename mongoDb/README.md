@@ -72,7 +72,7 @@ db.Data_sedawk.find().count()<br>
 ##### Le format de base<br>
 db.Data_sedawk.find().limit(10).pretty()<br>
 ##### Faire une requete GROUP BY qui renvoi une seule ligne par téléphone avec la dernière Date mise à jour<br>
-$Newbase=db.Data_sedawk.aggregate( [ { $group : { _id : "$telephone" , MaxDate: {$max: "$date"}} } ] ) <br>
+$db.Data_sedawk.aggregate( [ { $group : { telephone : "$telephone" , MaxDate: {$max: "$date"}} } ] ) <br>
 ##### Filtrer par la Date de mise à jour<br>
 Pour se faire il faut indexer la Date avec la commande ENSUREINDEX :<br>
 $db.Data_sedawk.ensureIndex({date:-1})<br>
