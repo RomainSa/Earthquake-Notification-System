@@ -1,17 +1,5 @@
-# Earthquake-Notification-System
-Earthquake Notification System designed using Cassandra database
-
-# PROBLEME
-- créer un cluster avec au moins 5 noeuds dans les 5 villes les plus peuplées du Japon
-- charger les données dans le Cluster
-- les coordonnées d'un tremblement de terre sont fournies
-- couper les noeuds présents dans la zone à risque (ie à 500 km de l'épicentre)
-- faire un INSERT avec au minimum 'date/heure de réception', 'numéro de téléphone', 'position lors du temblement de terre'
-- donner le temps pour avoir prévenu 80% de la population
-
-
-# IMPLEMENTATION
-En deux parties, en utilisant Python et Cassandra
+# MANUEL UTILISATEUR - MONGODB
+Implémentation en deux parties, en utilisant Python et Cassandra
 
 ## Partie Python
 - créer le tunnel entre Python et Cassandra
