@@ -98,7 +98,30 @@ done
 Ceci permet de paralléliser les insertions des données et d'atteindre des débits de l'ordre de plusieurs dizaines de milliers d'insertions par seconde.
 
 ### 4 - lancement des calculs sous PySpark
+Lancer Pyspark via `dse pyspark` et lancer les imports puis renseigner, en inputs, la date et la position du séïsme. Les calcul effectués sont les suivants:
+```python
+RDD = sc.cassandraTable('tns', 'base10').repartition(64)
+filteredRDD = RDD.filter(lambda line : line.date <= dat)
+RDDmapped = filteredRDD.map(lambda line : (line.telephone, (line.date, line.latitude, line.longitude)))
+RDDreduced = RDDmapped.reduceByKey(lambda val1, val2 : val1 if val1[0] > val2[0] else val2)
+delta = 4.50 #=500/111
+latMin = lat - delta
+latMax = lat + delta
+longMin = lat - delta
+longMax = lat + delta
+filteredSquare = RDDreduced.filter(lambda line : line[1][1] > latMin and line[1][1] < latMax and line[1][1] > longMin and line[1][1] < longMax)
+result = filteredSquare.map(lambda tup : {'telephone':tup[0], 'date':tup[1][0], 'latitude':tup[1][1], 'longitude':tup[1][2], 'insertdate':str(datetime.today())[:19]})
+result.saveToCassandra('tns', 'result', ['telephone', 'date', 'insertdate', 'latitude', 'longitude'])
+```
+On prend la base (RDD) que l'on filtre d'abord par rapport à la date du séïsme (on ne garde que les enregistrements ayant eu lieu avant cette date) puis on cherche la dernière position connue. On groupe alors par numéro de téléphone (RDDreduced) et on regarde quels sont les personnes dans la zone de danger. On met le résultat dans la table 'result'.
 
 ### 5 - récupération des fichiers de résultat
+La BDD de résultat est sauvegardée en JSON pour être visualisée via une page HTML (utilisation du package JavaScipt gmap.js)
 
-### 6 visualisation des résultats
+### 6 - visualisation des résultats
+Le résultat de la visualisation est le suivant:
+![](http://i61.tinypic.com/2gte0xz.png)
+
+### Améliorations possibles
+- ne pas filtrer sur un carré (via la latitude et longitude) mais filtrer sur un rond (coûteux en temps de calcul)
+- mettre ne chache certains RDD
