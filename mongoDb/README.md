@@ -1,5 +1,5 @@
 # Earthquake-Notification-System
-Earthquake Notification System designed using Cassandra database
+Earthquake Notification System designed using MongoDB
 
 # PROBLEME
 - créer un cluster avec au moins 5 noeuds dans les 5 villes les plus peuplées du Japon
@@ -10,35 +10,138 @@ Earthquake Notification System designed using Cassandra database
 - donner le temps pour avoir prévenu 80% de la population
 
 
-# IMPLEMENTATION
-En deux parties, en utilisant Python et Cassandra
+# IMPLEMENTATION AVEC UNE SEULE INSTANCE AWS MongoDB 2.4 with 4000 IOPS 
+## Etape 1 : Commander une machine MongoDB 2.4 with 4000 IOPS 
+http://docs.mongodb.org/ecosystem/platforms/amazon-ec2
 
-## Partie Python
-- créer le tunnel entre Python et Cassandra
-- insérer manuellement les coordonnées du tremblement de terre
-- calculer la zone à risque et en envoyer les coordonnées à Cassandra
 
-## Partie Cassandra
-- charger la BDD .csv dans une table 'base'
-- la trier par numero de téléphone + date
-- créer une deuxième table avec pour clé 'numéro de téléphone' et pour champ 'position' seulement (comme cela la position se met à jour puisque la dernière insérée dans la base écrase les précédente) ou éventuellement un simple 'distance par rapport à la longtiude de la côte la plus proche'...etc 
-- éventuellement créer un attribut 'distance par rapport à la côte' et trier sur cet attribut
-- faire un insert en filtrant les numéros de téléphone qui sont dans la zone à risque + l'heure d'insert
+Step by Step :
 
-## A résoudre:
-- dans la base initiale: combien de positions par personne? Combien de personnes?
-- combien y a t il de personnes? Pas 120 millions puisque les numéros de téléphone n'ont que 6 chiffres
-- réplication entre les différents noeuds: quels facteurs choisir?
-- pour l'insert, il faut passer par un csv (externe). Utilisation d'une base graph plutôt?
-- utilisation d'un geoHash?
+1) 
 
-## Résolu:
-- est-ce que l'INSERT se fait par rapport à l'ordre de la table insérée? Oui
+http://docs.mongodb.org/ecosystem/platforms/amazon-ec2/
 
-## Améliorations possibles:
-- filtrer directement la latitude et la longitude avec:
-WHERE Lmin < latitude AND Lmax < latitude AND lmin < longitude AND lmax < longitude 
-- voir si des clauses de ce WHERE sont inutiles (dépend de la géographie du pays)
+temps (1mn)
+
+2)se connecter à La machine aws 
+chmod 400 ahmed.pem    
+ssh -i ahmed.pem ec2-user@52.0.172.1  
+
+temps (1mn)
+
+3) importer les 1GB :
+wget http://s3.amazonaws.com/bigdata-paristech/projet2014/data/data_1GB.csv
+
+temps (2mn)
+
+4) faire du remplacement avec les ligne de commnade pour adapter la "Date" à MongoDB
+remplacer les virgules par des point
+remplacer les espace par des T
+ajouter à la position 23une lettre "Z"
+
+input : 2015-01-18 09:19:16,888;Yok_98;35.462635;139.774854;526198
+
+sed 's/,/./g;s/ /T/g;s/^\(.\{23\}\)/\1Z/'  data_10GB.csv > data_10GB_Date.csv 
+
+output : 2015-01-18T09:19:16.888Z;Yok_98;35.462635;139.774854;526198
+
+temps (30mn)
+
+5) creer json
+
+input : 2015-01-18T09:19:16.888Z;Yok_98;35.462635;139.774854;526198
+
+awk -F ';' '{ print "{date:\"" $1 "\",code:\"" $2 "\",position:[" $4 "," $3 "],telephone:" $5 "}" }' data_10GB_Date.csv > data_10GB_Date.json
+
+output : {"date":"2015-01-18T09:19:16.888Z","code":"Osa_61","position":[135.906451,34.232793],"telephone":829924}
+
+temps (30mn)
+
+6) lancer mongod 
+
+mongod --repair
+sudo mongod
+
+
+7) lancer mongo dans un nouvel terminal
+
+
+6) Importer le json dans mongo DB
+
+mongoimport -d test -c Data_sedawk  --type json --file data_10GB_Date.json 
+
+temps (100mn) --> 182000000 lignes
+
+
+8) Querry dans mongodb :
+
+db.Data_sedawk.find().count()
+
+db.Data_sedawk.find().limit(10).pretty()
+
+###Pour comparer la position:
+
+Ensure Position:
+
+db.Data_sedawk.ensureIndex({position:"2d"})
+
+tester des requetes sur position
+
+db.Data_sedawk.find({position: {$near:[51,-114],maxDistance: 500000}} )
+
+Tester des requete sur la date:
+
+db.Data_sedawk.find({
+...     date: { 
+...             '$gte': '2014-01-14 18:08:31,111',
+...             '$lt': '2016-01-15 18:08:31,111' 
+...     }
+... }).limit(4)
+
+
+
+{
+  $near: {
+     $geometry: {
+        type: "Point" ,
+        coordinates: [ <longitude> , <latitude> ]
+     },
+     $maxDistance: <distance in meters>,
+     $minDistance: <distance in meters>
+  }
+}
+
+
+
+GROUP BY :
+
+db.Data_sedawk.aggregate( [ { $group : { _id : "$code" } } ] )
+Comptage avec Group by:
+
+db.Data_sedawk.aggregate( [ { $group : { _id : "$code" ,count: { $sum: 1 }} } ] )
+
+GROUP BY DATE:
+
+db.Data_sedawk.aggregate( [ { $group : { _id : "$telephone" , MaxDate: {$max: "$date"}} } ] ).limit(4) 
+
+
+sh.allowSharding()
+ceer un undex
+ensureIndex
+sharding(comme ensure)
+
+
+
+
+
+
+
+#IMLEMENTATION VIA MONGO MMS AWS
+
+
+
+
+
 
 ## Liens utiles (calcul de distances sur une sphère et prise en charge en SQL)
 http://janmatuschek.de/LatitudeLongitudeBoundingCoordinates
