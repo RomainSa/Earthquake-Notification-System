@@ -13,7 +13,7 @@ La visualisation est la suivante:
 
 Elle a été obtenue à partir du package gmap.js et nécessite de lancer un serveur http pour être affichée (commande `python3 -m http.server` sous Python par exemple)
 
-# Problématique
+## Problématique
 - créer un cluster avec au moins 5 noeuds dans les 5 villes les plus peuplées du Japon
 - charger les données dans le Cluster
 - les coordonnées d'un tremblement de terre sont fournies
@@ -21,5 +21,5 @@ Elle a été obtenue à partir du package gmap.js et nécessite de lancer un ser
 - faire un INSERT avec au minimum 'date/heure de réception', 'numéro de téléphone', 'position lors du temblement de terre'
 - donner le temps pour avoir prévenu 80% de la population
 
-# Implémentation
+## Implémentation
 Nous avons utilisé deux technologies: mongoDb et Cassandra/Spark.
