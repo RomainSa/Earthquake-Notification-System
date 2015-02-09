@@ -7,3 +7,8 @@ Vous trouverez dans chaque sous-dossier:
 - un manuel utilisateur (ReadMe)
 
 La présentation qui a été donnée le 10 Janvier à 9h30 est à la racine du repository.
+
+La visualisation est la suivante:
+![Tsunami Notification System](http://i61.tinypic.com/2gte0xz.png)
+
+Elle a été obtenue à partir du package gmap.js
