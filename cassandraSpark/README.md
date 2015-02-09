@@ -1,4 +1,5 @@
 # MANUEL UTILISATEUR - CASSANDRA/SPARK
+Implémentation de la partie base de données distribuée en Cassandra. Les calculs distribués sont effectués par Spark. Le tout est packagé dans DataStax Enterprise 4.6.
 ## Décomposition du code:
 - lancement du cluster DataStax Enterprise 4.6 sous AWS
 - téléchargement des données depuis S3 
