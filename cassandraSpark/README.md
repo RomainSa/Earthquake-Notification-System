@@ -31,9 +31,9 @@ Il est nécessaire de configurer un 'security group' et de créer une 'key pair'
 
 ### 2 - téléchargement des données depuis S3 
 Il est nécessaire de télécharger le dernier client aws afin de pouvoir télécharger les données:<br>
-```
-sudo pip install awscli<br>
-aws configure <br>
+```shell
+sudo pip install awscli
+aws configure
 sudo aws s3 cp s3://bigdata-paristech/projet2014/data/data_10GB.csv /raid0/data_raw`
 ```
 
