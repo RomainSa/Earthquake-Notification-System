@@ -1,6 +1,6 @@
 # MANUEL UTILISATEUR - MONGODB
 
-## IMPLEMENTATION AVEC UNE SEULE INSTANCE AWS MongoDB 2.4 with 4000 IOPS 
+Implémentation avec une seule instance AWS.
 
 ### Etape 1 : Commander une machine MongoDB 2.4 with 4000 IOPS 
 http://docs.mongodb.org/ecosystem/platforms/amazon-ec2
