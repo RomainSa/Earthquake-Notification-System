@@ -118,10 +118,6 @@ On prend la base (RDD) que l'on filtre d'abord par rapport à la date du séïsm
 ### 5 - récupération des fichiers de résultat
 La BDD de résultat est sauvegardée en JSON pour être visualisée via une page HTML (utilisation du package JavaScipt gmap.js)
 
-### 6 - visualisation des résultats
-Le résultat de la visualisation est le suivant:
-![](http://i61.tinypic.com/2gte0xz.png)
-
 ### Améliorations possibles
 - ne pas filtrer sur un carré (via la latitude et longitude) mais filtrer sur un rond (coûteux en temps de calcul)
 - mettre en cache certains RDD
