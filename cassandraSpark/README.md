@@ -6,6 +6,7 @@
 - lancement des calculs sous PySpark
 - récupération des fichiers de résultat
 - visualisation
+
 NB: afin de ne pas trop alourdir ce manuel, chaque ligne de code n'est aps détaillée, nous présentons ici seulement les principales étapes.
 
 ## Comment lancer le code?
