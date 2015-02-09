@@ -4,11 +4,14 @@
 - téléchargement des données depuis S3 
 - création puis remplissage des tables dans Cassandra
 - lancement des calculs sous PySpark
+- récupération des fichiers de résultat
+- visualisation
 
 ## Comment lancer le code?
 - une fois le cluster lancé dans AWS, récupérer les addresses publiques et privées des noeuds et renseigner les paramètres correspondants dans le code (node0, node1...). Lancer ensuite le code ligne à ligne dans Shell puis dans Pyspark Shell.
 
 ## En détails:
+Chaque étape est rattachée au numéro correspondant dans le code source
 ### 1 - lancement du cluster DataStax Enterprise 4.6 sous AWS
 Il est nécessaire de configurer un 'security group' et de créer une 'key pair' avant de lancer le cluster. Les paramètres du cluster doivent être renseignés au lancement (onglet '3. Configure instance' de AWS). Dans notre cas, les paramètres sont les suivants:
 
