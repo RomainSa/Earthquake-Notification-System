@@ -1,0 +1,39 @@
+#Se connecter à La machine AWS en SSH
+$chmod 400 keys.pem    
+$ssh -i keys.pem ec2-user@52.0.172.1  
+#importer les 10GB depuis S3
+$wget http://s3.amazonaws.com/bigdata-paristech/projet2014/data/data_1GB.csv
+#Prétraitement des données dans la machine AWS
+$sed sed 's/,/./g;s/ /T/g;s/^\(.\{23\}\)/\1Z/' data_1MB.csv > data_1MB_Date.csv
+output : 2015-01-18T09:19:16.888Z;Yok_98;35.462635;139.774854;526198
+$head -10 data_10GB_Date.csv | grep 1
+$awk -F ';' '{ print "{date:\"" $1 "\",code:\"" $2 "\",position:[" $4 "," $3 "],telephone:" $5 "}" }' data_10GB_Date.csv > data_10GB_Date.json
+output : {"date":"2015-01-18T09:19:16.888Z","code":"Osa_61","position":[135.906451,34.232793],"telephone":829924}
+$head -10 data_10GB_Date.json | grep 1
+#Lancer mongod
+$mongod --repair
+$sudo mongod
+#Lancer mongo dans un deuxième terminal
+$mongo
+# Importer le json dans la base MongoDB
+$mongoimport -d test -c Data_sedawk  --type json --file data_10GB_Date.json 
+#Requêter la base Data_sedawk dans le Terminal Mongo
+db.Data_sedawk.find().count()
+#Le format de base
+db.Data_sedawk.find().limit(10).pretty()
+#Faire une requete GROUP BY
+$db.Data_sedawk.aggregate([{ $group : { position : "$position" , telephone : "$telephone" , MaxDate: {$max: "$date"}}}])
+#Filtrer par la Date
+$db.Data_sedawk.ensureIndex({date:-1})
+db.Data_sedawk.find({
+     date: { 
+             '$gte': '2014-01-14 18:08:31,111',
+             '$lt': '2016-01-15 18:08:31,111' 
+     }
+})
+#Identifier la cible des personnes à contacter avec la commande NEAR
+$db.Data_sedawk.ensureIndex({position:"2d"})<br>
+$db.Data_sedawk.find({position: {$near:[longitude_de_tsunami,latitude_de_tsunami],maxDistance: 500000}} )
+#Exporter des collections depuis Mongo
+$db.Data_sedawk.find().limit(4).forEach(function(doc){db.subset.insert(doc); });
+$db.subset.find()
