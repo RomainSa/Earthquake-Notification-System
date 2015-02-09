@@ -37,8 +37,8 @@ Afin d'adapter le format de la Date pour MongoDB on procède par 3 changements:<
 input : 2015-01-18 09:19:16,888;Yok_98;35.462635;139.774854;526198<br>
 
 En ligne de commande en tape :<br>
-sur lunix: $sed 's/,/./g;s/ /T/g;s/^\(.\{23\}\)/\1Z/'  data_10GB.csv > data_10GB_Date.csv <br>
-sur mac : sed 's/;/\t/g;s/,/./g;s/ /T/g;s/^\(.\{23\}\)/\1Z/' data_1GB.csv<br>
+$sed 's/,/./g;s/ /T/g;s/^\(.\{23\}\)/\1Z/'  data_10GB.csv > data_10GB_Date.csv <br>
+(sur mac : sed 's/;/\t/g;s/,/./g;s/ /T/g;s/^\(.\{23\}\)/\1Z/' data_1GB.csv)<br>
 output : 2015-01-18T09:19:16.888Z;Yok_98;35.462635;139.774854;526198<br>
 ##### --> Temps (30mn)<br>
 
