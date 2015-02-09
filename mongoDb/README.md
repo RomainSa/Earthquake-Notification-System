@@ -73,6 +73,9 @@ db.Data_sedawk.find({
 Pour se faire il faut indexer la position avec la commande ENSUREINDEX :
 $db.Data_sedawk.ensureIndex({position:"2d"})<br>
 $db.Data_sedawk.find({position: {$near:[longitude_de_tsunami,latitude_de_tsunami],maxDistance: 500000}} )<br>
+### Etape 8 : Exporter des collections depuis Mongo<br>
+db.Data_sedawk.find().limit(4).forEach(function(doc){db.subset.insert(doc); });<br><br>
+
 # IMPLEMENTATION AVEC UN CLUSTER MONGO MMS AWS <br>
 ###Etape 1 : Creer un cluster MMS<br>
 Créer un compte MMS:<br>
