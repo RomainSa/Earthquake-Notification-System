@@ -11,138 +11,102 @@ Earthquake Notification System designed using MongoDB
 
 
 # IMPLEMENTATION AVEC UNE SEULE INSTANCE AWS MongoDB 2.4 with 4000 IOPS 
-## Etape 1 : Commander une machine MongoDB 2.4 with 4000 IOPS 
+
+#### Etape 1 : Commander une machine MongoDB 2.4 with 4000 IOPS 
 http://docs.mongodb.org/ecosystem/platforms/amazon-ec2
 
+#### Etape 2 : Se connecter à La machine AWS en SSH
+Alley dans la repertoire de fichier keys téléchargé (Downloads)
+$chmod 400 keys.pem    
+$ssh -i keys.pem ec2-user@52.0.172.1  
 
-Step by Step :
+#### Etape 3 : importer les 10GB depuis S3
 
-1) 
+$wget http://s3.amazonaws.com/bigdata-paristech/projet2014/data/data_1GB.csv
 
-http://docs.mongodb.org/ecosystem/platforms/amazon-ec2/
+##### --> Temps (20mn)
 
-temps (1mn)
 
-2)se connecter à La machine aws 
-chmod 400 ahmed.pem    
-ssh -i ahmed.pem ec2-user@52.0.172.1  
+#### Etape 4 : Prétraitement des données dans la machine AWS
 
-temps (1mn)
+Afin d'adapter le format de la Date pour MongoDB on procède par 3 changements:
 
-3) importer les 1GB :
-wget http://s3.amazonaws.com/bigdata-paristech/projet2014/data/data_1GB.csv
-
-temps (2mn)
-
-4) faire du remplacement avec les ligne de commnade pour adapter la "Date" à MongoDB
-remplacer les virgules par des point
-remplacer les espace par des T
-ajouter à la position 23une lettre "Z"
+1-remplacer les virgules par des point
+2-remplacer les espace par des T
+3-ajouter à la position 23une lettre "Z"
 
 input : 2015-01-18 09:19:16,888;Yok_98;35.462635;139.774854;526198
 
-sed 's/,/./g;s/ /T/g;s/^\(.\{23\}\)/\1Z/'  data_10GB.csv > data_10GB_Date.csv 
-
+En ligne de commande en tape :
+$sed 's/,/./g;s/ /T/g;s/^\(.\{23\}\)/\1Z/'  data_10GB.csv > data_10GB_Date.csv 
 output : 2015-01-18T09:19:16.888Z;Yok_98;35.462635;139.774854;526198
+##### --> Temps (30mn)
 
-temps (30mn)
-
-5) creer json
+Après avoir fait les remplacement en convertit le csv en json en ligne de commande:
+Il faut permuter les deux colonnes latitude et longitude pour que Mongo les interprète correctement.
 
 input : 2015-01-18T09:19:16.888Z;Yok_98;35.462635;139.774854;526198
 
-awk -F ';' '{ print "{date:\"" $1 "\",code:\"" $2 "\",position:[" $4 "," $3 "],telephone:" $5 "}" }' data_10GB_Date.csv > data_10GB_Date.json
+$awk -F ';' '{ print "{date:\"" $1 "\",code:\"" $2 "\",position:[" $4 "," $3 "],telephone:" $5 "}" }' data_10GB_Date.csv > data_10GB_Date.json
 
 output : {"date":"2015-01-18T09:19:16.888Z","code":"Osa_61","position":[135.906451,34.232793],"telephone":829924}
 
-temps (30mn)
+##### --> Temps (30mn)
 
-6) lancer mongod 
+#### Etape 5 : Lancer mongod 
 
-mongod --repair
-sudo mongod
+$mongod --repair
+$sudo mongod
 
+#### Etape 6 : Lancer mongo dans un deuxième terminal 
 
-7) lancer mongo dans un nouvel terminal
+#### Etape 7 : Importer le json dans la base MongoDB
+Il faut changer la répertoire et aller à la partition data de cette machine car la répertoire de ec2-user n'a pas suffusement d'epace
 
+$mongoimport -d test -c Data_sedawk  --type json --file data_10GB_Date.json 
 
-6) Importer le json dans mongo DB
+##### --> Temps (100mn)
 
-mongoimport -d test -c Data_sedawk  --type json --file data_10GB_Date.json 
-
-temps (100mn) --> 182000000 lignes
-
-
-8) Querry dans mongodb :
-
+#### Etape 8 : Requeter la base Data_sedawk dans le Terminal Mongo
+##### Le nombre de lignes importées
 db.Data_sedawk.find().count()
-
+##### Le format de base
 db.Data_sedawk.find().limit(10).pretty()
 
-###Pour comparer la position:
+##### Faire une requete GROUP BY qui renvoi une seule ligne par téléphone avec la dernière Date mise à jour
+$Newbase=db.Data_sedawk.aggregate( [ { $group : { _id : "$telephone" , MaxDate: {$max: "$date"}} } ] ).limit(4) 
 
-Ensure Position:
-
-db.Data_sedawk.ensureIndex({position:"2d"})
-
-tester des requetes sur position
-
-db.Data_sedawk.find({position: {$near:[51,-114],maxDistance: 500000}} )
-
-Tester des requete sur la date:
+##### Filtrer par la Date de mise à jour
+Pour se faire il faut indexer la Date avec la commande ENSUREINDEX :
+$db.Data_sedawk.ensureIndex({date:-1})
 
 db.Data_sedawk.find({
 ...     date: { 
 ...             '$gte': '2014-01-14 18:08:31,111',
 ...             '$lt': '2016-01-15 18:08:31,111' 
 ...     }
-... }).limit(4)
+... })
 
+##### Identifier la cible des personnes à contacter avec la commande NEAR:
 
+Pour se faire il faut indexer la position avec la commande ENSUREINDEX :
 
-{
-  $near: {
-     $geometry: {
-        type: "Point" ,
-        coordinates: [ <longitude> , <latitude> ]
-     },
-     $maxDistance: <distance in meters>,
-     $minDistance: <distance in meters>
-  }
-}
+$db.Data_sedawk.ensureIndex({position:"2d"})
 
+$db.Data_sedawk.find({position: {$near:[longitude_de_tsunami,latitude_de_tsunami],maxDistance: 500000}} )
 
+# IMPLEMENTATION AVEC UN CLUSTER MONGO MMS AWS 
 
-GROUP BY :
+#### Etape 1 : Creer un cluster MMS
+Créer un compte MMS:
+https://mms.mongodb.com/
+suivre la tutoriel de deployement du cluster en précisant le nombre de noeuds:
+http://blog.mms.mongodb.com/post/103214737505/mms-create-aws-role-for-cross-account-access
 
-db.Data_sedawk.aggregate( [ { $group : { _id : "$code" } } ] )
-Comptage avec Group by:
+#### Etape 2 : Définir le master et les slaves
 
-db.Data_sedawk.aggregate( [ { $group : { _id : "$code" ,count: { $sum: 1 }} } ] )
+#### Etape 3 : se connecter sur le master et refaire toutes les commandes de IMLEMENTATION SUR UNE SEULE INSTANCE
 
-GROUP BY DATE:
+#### Etape 4 : couper un noeud et refaire le calcul dans Mongo
 
-db.Data_sedawk.aggregate( [ { $group : { _id : "$telephone" , MaxDate: {$max: "$date"}} } ] ).limit(4) 
-
-
-sh.allowSharding()
-ceer un undex
-ensureIndex
-sharding(comme ensure)
-
-
-
-
-
-
-
-#IMLEMENTATION VIA MONGO MMS AWS
-
-
-
-
-
-
-## Liens utiles (calcul de distances sur une sphère et prise en charge en SQL)
-http://janmatuschek.de/LatitudeLongitudeBoundingCoordinates
-http://www.movable-type.co.uk/scripts/latlong-db.html
+!!! Le cluster MMS est trop cher : En une heure aws m'a facturer 150 dollas
