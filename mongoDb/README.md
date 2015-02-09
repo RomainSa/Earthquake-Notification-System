@@ -26,14 +26,13 @@ $wget http://s3.amazonaws.com/bigdata-paristech/projet2014/data/data_1GB.csv
 
 ##### --> Temps (20mn)
 
-
 #### Etape 4 : Prétraitement des données dans la machine AWS
 
-Afin d'adapter le format de la Date pour MongoDB on procède par 3 changements:
+Afin d'adapter le format de la Date pour MongoDB on procède par 3 changements:<br>
 
-1-remplacer les virgules par des point
-2-remplacer les espace par des T
-3-ajouter à la position 23une lettre "Z"
+1-remplacer les virgules par des point<br>
+2-remplacer les espace par des T<br>
+3-ajouter à la position 23une lettre "Z"<br>
 
 input : 2015-01-18 09:19:16,888;Yok_98;35.462635;139.774854;526198
 
