@@ -5,6 +5,9 @@
 - création puis remplissage des tables dans Cassandra
 - lancement des calculs sous PySpark
 
+## Comment lancer le code?
+- une fois le clusert lancé dans AWS, récupérer les addresses publiques et privées des noeuds et renseigner les paramètres correspondants dans le code (node0, node1...). Lancer ensuite le code ligne à ligne dans Shell puis dans Pyspark Shell.
+
 ## En détails:
 ### lancement du cluster DataStax Enterprise 4.6 sous AWS
 Il est nécessaire de configurer un 'security group' et de créer une 'key pair' avant de lancer le cluster. Les paramètres du cluster doivent être renseignés au lancement (onglet '3. Configure instance' de AWS). Dans notre cas, les paramètres sont les suivants:
@@ -15,16 +18,18 @@ Il est nécessaire de configurer un 'security group' et de créer une 'key pair'
 --username *******<br>
 --password *******<br>
 --cfsreplicationfactor 2<br>
---analyticsnodes 5
+--analyticsnodes 5<br><br>
 
-Lien pour lancer le cluster dans la région 'us-east-1':
+Lien pour lancer le cluster dans la région 'us-east-1':<br>
 https://console.aws.amazon.com/ec2/home?region=us-east-1#LaunchInstanceWizard:ami=ami-ada2b6c4
 
 ### téléchargement des données depuis S3 
-Il est nécessaire de télécharger le dernier client aws afin de pouvoir télécharger les données:
-`sudo pip install awscli
+Il est nécessaire de télécharger le dernier client aws afin de pouvoir télécharger les données:<br>
+sudo pip install awscli<br>
 aws configure <br>
 sudo aws s3 cp s3://bigdata-paristech/projet2014/data/data_10GB.csv /raid0/data_raw`
 
 ### création puis remplissage des tables dans Cassandra
+On se connecte à cqlsh afin de créer
+
 ### lancement des calculs sous PySpark
