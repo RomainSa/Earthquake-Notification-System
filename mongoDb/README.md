@@ -97,3 +97,4 @@ http://blog.mms.mongodb.com/post/103214737505/mms-create-aws-role-for-cross-acco
 #### Etape 4 : couper un noeud et refaire le calcul dans Mongo<br>
 
 !!! Le cluster MMS est trop cher : En une heure aws m'a facturer 150 dollas<br>
+ 
