@@ -98,6 +98,9 @@ done
 Ceci permet de paralléliser les insertions des données et d'atteindre des débits de l'ordre de plusieurs dizaines de milliers d'insertions par seconde.
 
 ### 4 - lancement des calculs sous PySpark
+Avant de lancer les calculs, on étiend une isntance:<br>
+`ec2-terminate-instances i-******`
+
 Lancer Pyspark via `dse pyspark` et lancer les imports puis renseigner, en inputs, la date et la position du séïsme. Les calcul effectués sont les suivants:
 ```python
 RDD = sc.cassandraTable('tns', 'base10').repartition(64)
