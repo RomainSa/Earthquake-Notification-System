@@ -29,6 +29,28 @@ Il est nécessaire de configurer un 'security group' et de créer une 'key pair'
 --cfsreplicationfactor 2
 --analyticsnodes 5
 ```
+Récupérer les adresses et les stocker dans des variables:
+```shell
+conf='/spark-env.sh'
+pk='/DSE/DSE_EC2.pem'
+node0=''
+node1=''
+node2=''
+node3=''
+node4=''
+nodeprivate0=''
+nodeprivate1=''
+nodeprivate2=''
+nodeprivate3=''
+nodeprivate4=''
+```
+
+Envoyer la clé et les fichiers de configuration au master puis s'y connecter
+```shell
+scp -o "StrictHostKeyChecking no" -i "${pk}" "${pk}" ubuntu@$node0:~
+scp -o "StrictHostKeyChecking no" -i "${pk}" "${conf}" ubuntu@$node0:~
+ssh -o "StrictHostKeyChecking no" -i "${pk}" ubuntu@$node0
+```
 
 ### 2 - téléchargement des données depuis S3 
 Il est nécessaire de télécharger le dernier client aws afin de pouvoir télécharger les données:<br>
@@ -82,13 +104,19 @@ for ((i=1;i<$n+1;i++)); do
   scp -o "StrictHostKeyChecking no" -i /home/ubuntu/DSE_EC2.pem /home/ubuntu/spark-env.sh ubuntu@$nodename:~
 done
 ```
+- chaque worker écrase le fichier de configuration
+```shell
+sudo cp /etc/dse/spark/spark-env.sh spark-env.sh.backup
+sudo cp spark-env.sh /etc/dse/spark
+```
+
 - chaque worker redivise le fichier en 16, 32, 64...splits:
 ```shell
 m=64
 datafirstsplit="`find -name "datafirstsplit*" -print`"
 split -n l/$m -d -a 2 $datafirstsplit datasecondsplit
 ```
-- pour chaque split, le worker lance un process et fait un `INSERT INTO` dans Cassandra
+- pour chaque split, le worker lance un process et fait un `INSERT INTO` dans Cassandra (besoin de se connecter à chaque worker au préalable)
 ```shell
 for ((i=0;i<$m;i++)); do
   num=$(printf "%02d" $i)
@@ -98,8 +126,6 @@ done
 Ceci permet de paralléliser les insertions des données et d'atteindre des débits de l'ordre de plusieurs dizaines de milliers d'insertions par seconde.
 
 ### 4 - lancement des calculs sous PySpark
-Avant de lancer les calculs, on étiend une isntance:<br>
-`ec2-terminate-instances i-******`
 
 Lancer Pyspark via `dse pyspark` et lancer les imports puis renseigner, en inputs, la date et la position du séïsme. Les calcul effectués sont les suivants:
 ```python
@@ -124,3 +150,4 @@ La BDD de résultat est sauvegardée en JSON pour être visualisée via une page
 ### Améliorations possibles
 - ne pas filtrer sur un carré (via la latitude et longitude) mais filtrer sur un rond (coûteux en temps de calcul)
 - mettre en cache certains RDD
+- kill d'un node à gérer
