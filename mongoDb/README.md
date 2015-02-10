@@ -14,7 +14,7 @@ $ssh -i keys.pem ec2-user@52.0.172.1
 
 ### Etape 3 : importer les 10GB depuis S3
 ```shell
-$wget http://s3.amazonaws.com/bigdata-paristech/projet2014/data/data_1GB.csv
+$wget http://s3.amazonaws.com/bigdata-paristech/projet2014/data/data_10GB.csv
 ```
 #### --> Temps (20mn)
 ### Etape 4 : Prétraitement des données dans la machine AWS
