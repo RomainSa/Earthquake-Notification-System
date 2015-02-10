@@ -14,7 +14,7 @@ $ssh -i keys.pem ec2-user@52.0.172.1
 
 ### Etape 3 : importer les 10GB depuis S3
 ```shell
-$wget http://s3.amazonaws.com/bigdata-paristech/projet2014/data/data_1GB.csv
+$wget http://s3.amazonaws.com/bigdata-paristech/projet2014/data/data_10GB.csv
 ```
 #### --> Temps (20mn)
 ### Etape 4 : Prétraitement des données dans la machine AWS
@@ -57,7 +57,7 @@ $mongo
 ### Etape 7 : Importer le json dans la base MongoDB<br>
 Il faut changer le répertoire et aller à la partition data de cette machine car le répertoire de ec2-user n'a pas suffisamment d'epace
 ```shell
-$mongoimport -d test -c Data_sedawk  --type json --file data_10GB_Date.json <br>
+$mongoimport -d test -c Data_sedawk  --type json --file data_10GB_Date.json 
 ```
 #### --> Temps (100mn)<br>
 ### Etape 8 : Requêter la base Data_sedawk dans le Terminal Mongo<br>
@@ -88,11 +88,11 @@ db.Data_sedawk.find({
 Pour se faire il faut indexer la position avec la commande ENSUREINDEX :
 ```mongodb
 $db.Data_sedawk.ensureIndex({position:"2d"})<br>
-$db.Data_sedawk.find({position: {$near:[longitude_de_tsunami,latitude_de_tsunami],maxDistance: 500000}} )<br>
+$db.Data_sedawk.find({position: {$near:[longitude_de_tsunami,latitude_de_tsunami],maxDistance: 500000}} )
 ```
 ### Etape 8 : Exporter des collections depuis Mongo<br>
 ```mongodb
-db.Data_sedawk.find().limit(4).forEach(function(doc){db.subset.insert(doc); });<br><br>
+db.Data_sedawk.find().limit(4).forEach(function(doc){db.subset.insert(doc); });
 ```
 ## Implémentation avec un cluster Mongo MMS AWS <br>
 ### Etape 1 : Créer un cluster MMS<br>
