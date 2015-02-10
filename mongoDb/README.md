@@ -25,7 +25,7 @@ Afin d'adapter le format de la Date pour MongoDB on procède à 3 changements:<b
 input : 2015-01-18 09:19:16,888;Yok_98;35.462635;139.774854;526198<br>
 En ligne de commande on tape :
 ```shell
-$sed sed 's/,/./g;s/ /T/g;s/^\(.\{23\}\)/\1Z/' data_1MB.csv > data_1MB_Date.csv
+$sed sed 's/,/./g;s/ /T/g;s/^\(.\{23\}\)/\1Z/' data_1MB.csv > data_10MB_Date.csv
 output : 2015-01-18T09:19:16.888Z;Yok_98;35.462635;139.774854;526198
 ```
 Afficher mes datas:
@@ -57,7 +57,7 @@ $mongo
 ### Etape 7 : Importer le json dans la base MongoDB<br>
 Il faut changer le répertoire et aller à la partition data de cette machine car le répertoire de ec2-user n'a pas suffisamment d'epace
 ```shell
-$mongoimport -d test -c Data_sedawk  --type json --file data_10GB_Date.json <br>
+$mongoimport -d test -c Data_sedawk  --type json --file data_10GB_Date.json 
 ```
 #### --> Temps (100mn)<br>
 ### Etape 8 : Requêter la base Data_sedawk dans le Terminal Mongo<br>
@@ -88,11 +88,11 @@ db.Data_sedawk.find({
 Pour se faire il faut indexer la position avec la commande ENSUREINDEX :
 ```mongodb
 $db.Data_sedawk.ensureIndex({position:"2d"})<br>
-$db.Data_sedawk.find({position: {$near:[longitude_de_tsunami,latitude_de_tsunami],maxDistance: 500000}} )<br>
+$db.Data_sedawk.find({position: {$near:[longitude_de_tsunami,latitude_de_tsunami],maxDistance: 500000}} )
 ```
 ### Etape 8 : Exporter des collections depuis Mongo<br>
 ```mongodb
-db.Data_sedawk.find().limit(4).forEach(function(doc){db.subset.insert(doc); });<br><br>
+db.Data_sedawk.find().limit(4).forEach(function(doc){db.subset.insert(doc); });
 ```
 ## Implémentation avec un cluster Mongo MMS AWS <br>
 ### Etape 1 : Créer un cluster MMS<br>
