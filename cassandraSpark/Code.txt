@@ -1,0 +1,192 @@
+#########################################
+###	1 - EC2 CLUSTER LAUNCH & CONNECT
+#########################################
+# launch new DSE 4.6 AMI on AWS (to be launched in new tab) use at least m3.large
+https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-ada2b6c4
+
+# AWS options for 'step 3' (total number of nodes must be > (strictly) to analyticsnodes + searchnodes)
+--clustername testclusterA
+--totalnodes 5
+--version enterprise
+--username ******
+--password ******
+--cfsreplicationfactor 2
+--analyticsnodes 5
+
+###### on the master
+# nodes parameters
+conf='' # spark custom configuration file
+pk='' # aws key pair 
+node0=''
+node1=''
+node2=''
+node3=''
+node4=''
+nodeprivate0=''
+nodeprivate1=''
+nodeprivate2=''
+nodeprivate3=''
+nodeprivate4=''
+
+# sends key to master and connects to it
+scp -o "StrictHostKeyChecking no" -i "${pk}" "${pk}" ubuntu@$node0:~
+scp -o "StrictHostKeyChecking no" -i "${pk}" "${conf}" ubuntu@$node0:~
+ssh -o "StrictHostKeyChecking no" -i "${pk}" ubuntu@$node0
+
+
+#########################################
+###	2 - DOWNLOAD DATA FROM S3
+#########################################
+# download file from S3 after aws-client install
+#credentials: ******,******,us-east-1
+sudo pip install awscli
+aws configure
+sudo aws s3 cp s3://bigdata-paristech/projet2014/data/data_10GB.csv /raid0/data_raw
+
+
+#########################################
+###	3 - BULK LOAD DATA INTO CASSANDRA
+#########################################
+# connects to Cassandra and creates the tables
+cqlsh
+
+CREATE KEYSPACE IF NOT EXISTS tns WITH REPLICATION = {'class': 'NetworkTopologyStrategy', 'Analytics' : 2};
+
+CREATE TABLE tns.base1 (
+	telephone int,
+	date timestamp, 
+	latitude decimal, 
+	longitude decimal, 
+	PRIMARY KEY ((telephone), date));
+
+CREATE TABLE tns.base10 (
+	telephone int,
+	date timestamp, 
+	latitude decimal, 
+	longitude decimal, 
+	PRIMARY KEY ((telephone), date));
+
+CREATE TABLE tns.result (
+	telephone int,
+	date timestamp, 
+	insertdate timestamp,
+	latitude decimal, 
+	longitude decimal, 
+	PRIMARY KEY (telephone));
+exit
+
+# root is necesary to perform awk to parse file
+sudo -s
+awk -F ';' '{ print $5 ";" substr($1,1,19) ";"$3 ";" $4  }' /raid0/data_raw > /raid0/data
+n=4 # number of workers that will receive the splits
+split -n l/$n -d -a 2 /raid0/data /raid0/datafirstsplit
+
+# sends all splits + spark configuration file to workers
+# COPY ADRESSES HERE !
+for ((i=1;i<$n+1;i++)); do
+  numfile=$(printf "%02d" $(($i-1)))
+  nodename=$(eval "echo \"\$nodeprivate$i\"")
+  scp -o "StrictHostKeyChecking no" -i /home/ubuntu/DSE_EC2.pem /raid0/datafirstsplit$numfile ubuntu@$nodename:~
+  scp -o "StrictHostKeyChecking no" -i /home/ubuntu/DSE_EC2.pem /home/ubuntu/spark-env.sh ubuntu@$nodename:~
+done
+
+# remove useless files
+cd /raid0
+rm datafirstsplit*
+rm data
+
+###### on each worker
+# connects to the worker
+### COPY ADDRESSES HERE!
+ssh -o "StrictHostKeyChecking no" -i "${pk}" ubuntu@$node1
+
+# overwrites existing Spark configuration file NO! USE PYSPARK INSTEAD
+sudo cp /etc/dse/spark/spark-env.sh spark-env.sh.backup
+sudo cp spark-env.sh /etc/dse/spark
+
+m=64
+# gets the received split file and split the files in 'data' in m parts
+datafirstsplit="`find -name "datafirstsplit*" -print`"
+split -n l/$m -d -a 2 $datafirstsplit datasecondsplit
+
+# for each part, performs a COPY FROM in CQL !CHANGE COLUMN FAMILY NAME IF NEEDED
+for ((i=0;i<$m;i++)); do
+  num=$(printf "%02d" $i)
+  cqlsh -e "COPY tns.base10 (telephone, date, latitude, longitude) FROM '/home/ubuntu/datasecondsplit$num' WITH DELIMITER = ';';" &
+done
+
+# removes useless files
+rm datasecondsplit*
+
+# terminate one instance via l'API ec2:
+sudo apt-get install ec2-api-tools
+ec2-terminate-instances i-******
+
+#########################################
+###	4 - SPARK CALCULATIONS
+#########################################
+# launch python/spark shell
+dse pyspark
+
+# imports some libraries
+from datetime import datetime
+
+# earthquake epicenter time an location
+lat = float(raw_input("Latitude: "))
+long = float(raw_input("Longitude: "))
+dat = raw_input('Date (format YYYY-MM-DD HH:MM:SS): ')
+dat = datetime(int(dat[:4]), int(dat[5:7]), int(dat[8:10]), int(dat[11:13]), int(dat[14:16]), int(dat[17:19]))
+
+# saves earthquake epicenter data in a json NE MARCHE PAS !!!
+f = open('epicenter.json', 'w')
+f.write("{\"latitude\":" + str(lat) + ",\"longitude\":" + str(long) + ",\"time\":\"" + str(dat) + "\"}")
+f.close()
+
+# starts counting time
+startTime = datetime.now()
+
+# all data
+RDD = sc.cassandraTable('tns', 'base10').repartition(64)
+
+# filters using earthquakes date time
+filteredRDD = RDD.filter(lambda line : line.date <= dat)
+
+# Map/Reduce phases in order to get: phone number, last time seen before earthquake, position at that time
+RDDmapped = filteredRDD.map(lambda line : (line.telephone, (line.date, line.latitude, line.longitude)))
+RDDreduced = RDDmapped.reduceByKey(lambda val1, val2 : val1 if val1[0] > val2[0] else val2)
+
+# then we filter people who are in the danger zone
+delta = 4.50 #=500/111
+latMin = lat - delta
+latMax = lat + delta
+longMin = lat - delta
+longMax = lat + delta
+filteredSquare = RDDreduced.filter(lambda line : line[1][1] > latMin and line[1][1] < latMax and line[1][1] > longMin and line[1][1] < longMax)
+
+# saves results into Cassandra
+result = filteredSquare.map(lambda tup : {'telephone':tup[0], 'date':tup[1][0], 'latitude':tup[1][1], 'longitude':tup[1][2], 'insertdate':str(datetime.today())[:19]})
+result.saveToCassandra('tns', 'result', ['telephone', 'date', 'insertdate', 'latitude', 'longitude'])	
+
+# saves JSON with people data on the master and sends it
+f = open('people.json', 'w')
+f.write('[')
+for value in resultTable.collect():
+	string='{\"telephone\":'+str(value.telephone)+',\"date\":\"'+str(value.date)+'\",\"latitude\":'+str(value.latitude)+',\"longitude\":'+str(value.longitude)+'}'
+	f.write(string + ',\n')
+
+f.write('{}]')
+f.close()
+
+# output time to perform 80% of the calculations
+resultTable = sc.cassandraTable("tns", "result")
+resultCount = resultTable.map(lambda line : 1).reduce(lambda x, y : x + y)
+resultTime80 = resultTable.sortBy(lambda line : line.insertdate).take(resultCount)[int(resultCount*0.80)].insertdate
+print('80% of inserts have been made in ' + str( (resultTime80 - startTime).seconds) + ' seconds (' + str(resultCount) + ' inserts)')
+
+
+#########################################
+###	5 - RESULTS FILES
+#########################################
+# gets files back from remote
+scp -i "${pk}" ubuntu@$node1:epicenter.json ''
+scp -i "${pk}" ubuntu@$node1:people.json ''
